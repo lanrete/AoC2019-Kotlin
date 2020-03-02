@@ -1,19 +1,8 @@
+import mathUti.gcd
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.acos
 import kotlin.math.sqrt
-
-fun gcd(a: Int, b: Int): Int {
-    if (a < b) return gcd(b, a)
-    if (b != 0) return gcd(b, a % b)
-    return a
-}
-
-fun gcd(a: Long, b: Long): Long {
-    if (a < b) return gcd(b, a)
-    if (b != 0L) return gcd(b, a % b)
-    return a
-}
 
 data class Coordinate(val x: Int, val y: Int) {
     override fun toString() = "($x, $y)"
@@ -73,7 +62,7 @@ object Day10 : Solver() {
     }
 
 
-    fun angel(other: Coordinate): Double {
+    private fun angel(other: Coordinate): Double {
         val v1x = 0
         val v1y = 1
 

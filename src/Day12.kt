@@ -1,8 +1,5 @@
+import mathUti.lcm
 import kotlin.math.abs
-
-fun lcm(a: Long, b: Long): Long {
-    return a * b / gcd(b, a)
-}
 
 enum class Axis {
     X,
@@ -12,9 +9,9 @@ enum class Axis {
 }
 
 data class Moon(var x: Int, var y: Int, var z: Int) {
-    var vx = 0
-    var vy = 0
-    var vz = 0
+    private var vx = 0
+    private var vy = 0
+    private var vz = 0
 
     val potentialEnergy: Int
         get() {
