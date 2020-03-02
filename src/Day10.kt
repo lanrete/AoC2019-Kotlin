@@ -9,6 +9,12 @@ fun gcd(a: Int, b: Int): Int {
     return a
 }
 
+fun gcd(a: Long, b: Long): Long {
+    if (a < b) return gcd(b, a)
+    if (b != 0L) return gcd(b, a % b)
+    return a
+}
+
 data class Coordinate(val x: Int, val y: Int) {
     override fun toString() = "($x, $y)"
     fun between(other: Coordinate): List<Coordinate> {

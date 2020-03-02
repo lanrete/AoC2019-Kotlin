@@ -1,5 +1,16 @@
 import kotlin.math.abs
 
+fun lcm(a: Long, b: Long): Long {
+    return a * b / gcd(b, a)
+}
+
+enum class Axis {
+    X,
+    Y,
+    Z,
+    ALL
+}
+
 data class Moon(var x: Int, var y: Int, var z: Int) {
     var vx = 0
     var vy = 0
@@ -19,44 +30,35 @@ data class Moon(var x: Int, var y: Int, var z: Int) {
         return "($x, $y, $z) with velocity of ($vx, $vy, $vz)"
     }
 
-    fun updateVelocityX(another: Moon) {
-        if (another.x > x) vx += 1
-        if (another.x < x) vx -= 1
+    fun updateVelocity(another: Moon, axis: Axis) {
+        when (axis) {
+            Axis.X -> {
+                if (another.x > x) vx += 1
+                if (another.x < x) vx -= 1
+            }
+            Axis.Y -> {
+                if (another.y > y) vy += 1
+                if (another.y < y) vy -= 1
+            }
+            Axis.Z -> {
+                if (another.z > z) vz += 1
+                if (another.z < z) vz -= 1
+            }
+            Axis.ALL -> {
+                for (it in listOf(Axis.X, Axis.Y, Axis.Z)) updateVelocity(another, it)
+            }
+        }
     }
 
-    fun updateVelocityY(another: Moon) {
-        if (another.y > y) vy += 1
-        if (another.y < y) vy -= 1
-    }
-
-    fun updateVelocityZ(another: Moon) {
-        if (another.z > z) vz += 1
-        if (another.z < z) vz -= 1
-    }
-
-    fun updateLocationX() {
-        x += vx
-    }
-
-    fun updateLocationY() {
-        y += vy
-    }
-
-    fun updateLocationZ() {
-        z += vz
-    }
-
-    fun updateVelocity(another: Moon) {
-        updateVelocityX(another)
-        updateVelocityY(another)
-        updateVelocityZ(another)
-
-    }
-
-    fun updateLocation() {
-        updateLocationX()
-        updateLocationY()
-        updateLocationZ()
+    fun updateLocation(axis: Axis) {
+        when (axis) {
+            Axis.X -> x += vx
+            Axis.Y -> y += vy
+            Axis.Z -> z += vz
+            Axis.ALL -> {
+                for (it in listOf(Axis.X, Axis.Y, Axis.Z)) updateLocation(it)
+            }
+        }
     }
 }
 
@@ -75,56 +77,46 @@ object Day12 : Solver() {
 
     private var moons = resetMoons()
 
-    private fun iterate() {
+    private fun iterate(axis: Axis) {
         moons.forEach { base ->
             moons
                 .filter { it != base }
-                .forEach { base.updateVelocity(it) }
+                .forEach { base.updateVelocity(it, axis) }
         }
-        moons.forEach { it.updateLocation() }
+        moons.forEach { it.updateLocation(axis) }
     }
 
-    private fun iterateX() {
-        moons.forEach { base ->
-            moons
-                .filter { it != base }
-                .forEach { base.updateVelocityX(it) }
-        }
-        moons.forEach { it.updateLocationX() }
-
-    }
-
-    private fun iterateY() {
-        moons.forEach { base ->
-            moons
-                .filter { it != base }
-                .forEach { base.updateVelocityY(it) }
-        }
-        moons.forEach { it.updateLocationY() }
-
-    }
-
-    private fun iterateZ() {
-        moons.forEach { base ->
-            moons
-                .filter { it != base }
-                .forEach { base.updateVelocityX(it) }
-        }
-        moons.forEach { it.updateLocationX() }
-
-    }
 
     override fun question1(): String {
-        repeat(1000) { iterate() }
+        repeat(1000) { iterate(Axis.ALL) }
         return moons.map { it.kineticEnergy * it.potentialEnergy }.reduce { a, b -> a + b }.toString()
     }
 
-    override fun question2(): String {
+
+    private fun findLoop(axis: Axis): Int {
         moons = resetMoons()
-        return ""
+        val initialStage = resetMoons()
+        var cnt = 0
+        do {
+            iterate(axis)
+            cnt += 1
+        } while (moons.zip(initialStage).any { it.first != it.second })
+        return cnt + 1
+    }
+
+    override fun question2(): String {
+        return listOf(Axis.X, Axis.Y, Axis.Z)
+            .map {
+                val cycle = findLoop(it)
+                println("$cycle steps needed on Axis $it")
+                cycle.toLong()
+            }
+            .reduce { acc, i -> lcm(acc, i) }
+            .toString()
     }
 }
 
 fun main() {
+    Day12.solveFirst()
     Day12.solveSecond()
 }
