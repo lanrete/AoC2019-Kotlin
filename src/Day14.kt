@@ -92,17 +92,21 @@ object Day14 : Solver() {
     }
 
     override fun question2(): String {
-        for (i in (3568900 downTo 1)) {
-            val oreNeeded = getOre(Component(FUEL, i.toLong()))
-            if (oreNeeded < 1000000000000) {
-                return i.toString()
-            }
+        val target = 1000000000000
+        var upperLimit = target
+        var lowerLimit = 0L
+
+        while (upperLimit - lowerLimit > 1) {
+            val candidate = (upperLimit + lowerLimit) / 2
+            val oreNeeded = getOre(Component(FUEL, candidate))
+
+            if (oreNeeded < target) lowerLimit = candidate
+            else upperLimit = candidate
         }
-        return "NotFound"
+        return lowerLimit.toString()
     }
 }
 
 fun main() {
-    Day14.solveFirst()
-    Day14.solveSecond()
+    Day14.solve()
 }
