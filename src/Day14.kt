@@ -1,59 +1,109 @@
-data class Material(val name: String) {
-    lateinit var ingredients: List<String>
+data class Component(val material: Material, val count: Long) {
+    override fun toString(): String {
+        return "$count $material"
+    }
 }
 
-data class Reaction(val inputs: List<Pair<String, Int>>, val output: Pair<String, Int>)
+data class Material(val name: String) {
+    override fun toString(): String {
+        return name
+    }
+}
+
 
 object Day14 : Solver() {
     override val day: Int = 14
     override val inputs: List<String> = getInput()
 
-    private const val ORE = "ORE"
-    private const val FUEL = "FUEL"
+    private val ORE = Material("ORE")
+    private val FUEL = Material("FUEL")
 
-    val materials: MutableMap<String, Material> = mutableMapOf(ORE to Material(ORE))
-    val reactions = inputs.map {
-        val reactionInput = it
-            .split("=").first().split(",").map { ingredient ->
-                val tokens = ingredient.trim().split(" ")
-                val count = tokens.first().toInt()
-                val material = tokens.last()
-                Pair(material, count)
+    private val components: MutableMap<Material, List<Component>> = mutableMapOf()
+    private val reactionOutputs: MutableMap<Material, Int> = mutableMapOf()
+    private val materials: MutableSet<Material> = mutableSetOf(ORE)
+    private val materialLevels: MutableMap<Material, Int> = mutableMapOf(ORE to 0)
+
+    private fun processInput() {
+        for (reactionString in inputs) {
+            val inputs = reactionString.split("=>").first().trim()
+            val output = reactionString.split("=>").last().trim()
+
+            val outputCount = output.split(" ").first().toInt()
+            val outputMaterial = Material(output.split(" ").last())
+
+            val ingredient = inputs.split(",").map {
+                val tokens = it.trim().split(" ")
+                val cnt = tokens.first().toLong()
+                val m = Material(tokens.last())
+                Component(material = m, count = cnt)
             }
-        val outputTokens = it.split('>').last().trim().split(" ")
-        val outputName = outputTokens.last()
-        val outputMaterial = Material(outputName)
-        outputMaterial.ingredients = reactionInput.map { input -> input.first }
-        materials[outputTokens.last()] = outputMaterial
-        val reactionOutput = Pair(outputName, outputTokens.first().toInt())
-        Reaction(reactionInput, reactionOutput)
+            materials.add(outputMaterial)
+            components[outputMaterial] = ingredient
+            reactionOutputs[outputMaterial] = outputCount
+        }
     }
 
-    private val materialDepth: MutableMap<Material, Int> = mutableMapOf(materials[ORE]!! to 1)
-
-    private fun getDepth(material: Material): Int {
-        return materialDepth.getOrPut(
-            material,
-            { material.ingredients.map { getDepth(materials.getValue(it)) }.reduce { a, b -> if (a < b) b else a } + 1 })
+    private fun getLevel(material: Material): Int {
+        return materialLevels.getOrPut(material,
+            {
+                components
+                    .getValue(material)
+                    .map { getLevel(it.material) }
+                    .reduce { acc, i -> if (i > acc) i else acc } + 1
+            }
+        )
     }
 
+    private fun getOre(c: Component): Long {
+        var currentFormula = components
+            .getValue(c.material)
+            .map { Component(it.material, it.count * c.count) }
+            .toMutableList()
+        var currentLevel = currentFormula.filter { it.count > 0 }.map { getLevel(it.material) }.max()!!
+        while (currentLevel > 0) {
+            val neededComponents = currentFormula
+                .filter { getLevel(it.material) == currentLevel }
+                .filter { it.material != ORE }
+                .flatMap {
+                    currentFormula.remove(it)
+                    val needed = it.count
+                    val unitOutput = reactionOutputs.getValue(it.material)
+                    val reactionCount = (needed / unitOutput) + if (needed % unitOutput == 0L) 0 else 1
+                    val rawMaterials = components.getValue(it.material).map { comp ->
+                        Component(comp.material, comp.count * reactionCount)
+                    }.toMutableList()
+                    val wasteOutput = unitOutput * reactionCount - needed
+                    if (wasteOutput > 0) rawMaterials.add(Component(it.material, 0 - wasteOutput))
+                    rawMaterials.toList()
+                }
+            currentFormula.addAll(neededComponents)
+            currentFormula = currentFormula
+                .groupBy { it.material }
+                .map { Component(it.key, it.value.map { sub -> sub.count }.sum()) }
+                .toMutableList()
+            currentLevel = currentFormula.filter { it.count > 0 }.map { getLevel(it.material) }.max()!!
+        }
+        return currentFormula.first { it.material == ORE }.count
+    }
 
     override fun question1(): String {
-        val depths = getDepth(materials.getValue(FUEL))
-        materials
-            .map { it.key to materialDepth.getValue(it.value) }
-            .sortedByDescending { it.second }
-            .forEach {
-                println("${it.first} is a level ${it.second} material")
-            }
-        return ""
+        processInput()
+        return getOre(Component(FUEL, 1)).toString()
     }
 
     override fun question2(): String {
-        TODO("not implemented")
+        for (i in (3568900 downTo 1)) {
+            val oreNeeded = getOre(Component(FUEL, i.toLong()))
+            println("$oreNeeded ORE to generate $i FUEL")
+            if (oreNeeded < 1000000000000) {
+                return i.toString()
+            }
+        }
+        return "NotFound"
     }
 }
 
 fun main() {
     Day14.solveFirst()
+    Day14.solveSecond()
 }
