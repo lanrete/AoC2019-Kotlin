@@ -24,7 +24,7 @@ object Day13 : Solver() {
     private val baseCode = inputs[0].split(",").map { it.toLong() }
     private val intcodeComputer = IntcodeComputer(baseCode)
 
-    var floor = mapOf<Location, Tile>()
+    private var floor = mapOf<Location, Tile>()
 
     private fun updateFloor(instructions: List<Int>) {
         floor = instructions
