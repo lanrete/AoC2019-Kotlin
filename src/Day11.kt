@@ -1,40 +1,9 @@
-data class Location(val x: Int, val y: Int) {
-    fun move(d: Direction): Location {
-        return Location(x + d.modifier.first, y + d.modifier.second)
-    }
-}
+import utility.Direction
+import utility.Location
 
 enum class Color {
     BLACK,
     WHITE
-}
-
-enum class Direction {
-    UP {
-        override val modifier: Pair<Int, Int> = Pair(0, 1)
-        override fun turnLeft(): Direction = LEFT
-        override fun turnRight(): Direction = RIGHT
-    },
-    DOWN {
-        override val modifier: Pair<Int, Int> = Pair(0, -1)
-        override fun turnLeft(): Direction = RIGHT
-        override fun turnRight(): Direction = LEFT
-    },
-    LEFT {
-        override val modifier: Pair<Int, Int> = Pair(-1, 0)
-        override fun turnLeft(): Direction = DOWN
-        override fun turnRight(): Direction = UP
-    },
-    RIGHT {
-        override val modifier: Pair<Int, Int> = Pair(1, 0)
-        override fun turnLeft(): Direction = UP
-        override fun turnRight(): Direction = DOWN
-    },
-    ;
-
-    abstract val modifier: Pair<Int, Int>
-    abstract fun turnLeft(): Direction
-    abstract fun turnRight(): Direction
 }
 
 object Day11 : Solver() {

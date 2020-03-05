@@ -1,3 +1,5 @@
+import utility.Location
+
 enum class Tile {
     EMPTY {
         override fun toString(): String = " "

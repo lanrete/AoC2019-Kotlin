@@ -66,6 +66,10 @@ class IntcodeComputer(private val baseCode: List<Long>) {
         return
     }
 
+    fun addInput(it: Int) {
+        addInput(it.toLong())
+    }
+
     fun resetCodes() {
         codes = baseCode
             .withIndex()
