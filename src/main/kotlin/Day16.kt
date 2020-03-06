@@ -1,4 +1,7 @@
 object Day16 : Solver() {
+
+    data class IntervalTreeNode(val start: Int, val end: Int)
+
     override val day: Int = 16
     override val inputs: List<String> = getInput()
 
@@ -43,5 +46,5 @@ object Day16 : Solver() {
 }
 
 fun main() {
-    Day16.solve()
+    Day16.validateInput()
 }
