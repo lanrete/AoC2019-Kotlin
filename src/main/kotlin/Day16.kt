@@ -37,7 +37,6 @@ object Day16 : Solver() {
     private val startSequence = inputs[0].map { it - '0' }
     private val inputLength = startSequence.size
     private var root = buildTree(0, end = inputLength - 1, sequence = startSequence)!!
-    private var intervalMap: MutableMap<Pair<Int, Int>, FFTIntervals> = mutableMapOf()
 
     private fun getIntervalSum(root: IntervalTreeNode?, start: Int, end: Int): Int {
         if (root == null) return 0
@@ -65,8 +64,6 @@ object Day16 : Solver() {
     }
 
     private fun getIntervals(digit: Int, length: Int): FFTIntervals {
-        val key = Pair(digit, length)
-        if (key in intervalMap) return intervalMap.getValue(key)
         val positiveIntervals =
             ((0 + digit - 1)..length step digit * 4).map {
                 val end = it + digit - 1
@@ -79,7 +76,6 @@ object Day16 : Solver() {
                 if (end < length) Interval(it, it + digit - 1)
                 else Interval(it, length - 1)
             }
-        intervalMap[key] = FFTIntervals(positiveIntervals, negativeInterval)
         return FFTIntervals(positiveIntervals, negativeInterval)
     }
 
@@ -99,6 +95,8 @@ object Day16 : Solver() {
 
             (positiveSum - negativeSum).toString().last() - '0'
         }
+        root = IntervalTreeNode(0, 1)
+        System.gc()
         root = buildTree(0, length - 1, newSequence)!!
         return newSequence
     }
@@ -118,7 +116,6 @@ object Day16 : Solver() {
         root = buildTree(0, end = refinedInputLength - 1, sequence = refinedInput)!!
         var currentSequence = refinedInput
         repeat(100) {
-            println("Cycle $it")
             currentSequence = frequencyTransform(refinedInputLength)
         }
         return currentSequence.subList(offset, offset + 8).joinToString("")
