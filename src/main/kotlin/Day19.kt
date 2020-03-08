@@ -9,41 +9,42 @@ object Day19 : Solver() {
     private val locationStatus: MutableMap<Location, Boolean> = mutableMapOf()
 
     private fun isInRange(location: Location): Boolean {
-        return locationStatus.getOrPut(location) {
-            droneDeploy.resetCodes()
-            droneDeploy.addInput(location.x)
-            droneDeploy.addInput(location.y)
-            droneDeploy.run()
-            val output = droneDeploy.outputs.first()
-            if (output == 1L) return true
-            return false
-        }
+        if (location in locationStatus) return locationStatus.getValue(location)
+        droneDeploy.resetCodes()
+        droneDeploy.addInput(location.x)
+        droneDeploy.addInput(location.y)
+        droneDeploy.run()
+        val output = droneDeploy.outputs.first()
+        val result = output == 1L
+        locationStatus[location] = result
+        return result
     }
 
     override fun question1(): String {
         var cnt = 0
-        for (x in (0..49))
-            for (y in (0..49)) {
+        for (y in (0..49))
+            for (x in (0..49))
                 if (isInRange(Location(x, y))) cnt += 1
-            }
         return cnt.toString()
     }
 
     override fun question2(): String {
-        var distance = 1
-        while (true) {
-            println("Checking distance = $distance")
-            for (y in (0..distance)) {
-                val x = distance - y
-                if (!isInRange(Location(x, y))) continue
-                val check = (x..x + 100).flatMap { eachX -> (y..y + 100).map { eachY -> Location(eachX, eachY) } }
+        var startPosition = 0
+        for (y in (0..9999)) {
+            var firstPositive: Int? = null
+            for (x in (startPosition..9999)) {
+                if (!isInRange(Location(x, y)) && firstPositive == null) continue
+                if (!isInRange(Location(x, y)) && firstPositive != null) break
+                if (firstPositive == null) firstPositive = x
+                val check = (x..x + 99).flatMap { eachX -> (y..y + 99).map { eachY -> Location(eachX, eachY) } }
                     .asSequence()
                     .all { isInRange(it) }
                 if (check) return (x * 10000 + y).toString()
             }
-            distance += 1
-            if (distance >= 9999 * 2) return "Something seems off"
+            if (firstPositive != null) startPosition = firstPositive
+            if (y % 100 == 0) println("$y lines processed")
         }
+        return "Nothing found"
     }
 }
 
