@@ -61,6 +61,10 @@ class IntcodeComputer(private val baseCode: List<Long>) {
         .associate { (ind, value) -> Pair(ind.toLong(), value) }
         .toMutableMap()
 
+    fun addInput(it: List<Int>) {
+        for (int in it) addInput(int)
+    }
+
     fun addInput(it: Long) {
         inputs.add(it)
         return
