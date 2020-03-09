@@ -1,10 +1,13 @@
 import java.io.File
 
-abstract class Solver {
+abstract class Solver(private val debug: Boolean = false) {
     abstract val day: Int
     abstract val inputs: List<String>
     fun getInput(): List<String> {
-        val fileName = "../input/$day"
+        val fileName = when (debug) {
+            true -> "../input/${day}_test"
+            false -> "../input/$day"
+        }
         return File(fileName).readLines()
     }
 
