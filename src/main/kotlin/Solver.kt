@@ -29,6 +29,16 @@ abstract class Solver(private val debug: Boolean = false) {
         solveSecond()
     }
 
+    fun solveWithTimer() {
+        val startTime = System.currentTimeMillis()
+        solveFirst()
+        val solveFirst = System.currentTimeMillis()
+        solveSecond()
+        val solveSecond = System.currentTimeMillis()
+        println("${(solveFirst - startTime) / 1000.0} seconds to solve Question 1")
+        println("${(solveSecond - solveFirst) / 1000.0} seconds to solve Question 2")
+    }
+
     fun validateInput() {
         this.inputs.forEach { input -> println(input) }
     }

@@ -24,10 +24,10 @@ object Day21 : Solver() {
         #.??#
          ABCD
         */
-        springBot.addInput("NOT A J\n".toAscii())
-        springBot.addInput("NOT D T\n".toAscii())
-        springBot.addInput("NOT T T\n".toAscii())
-        springBot.addInput("AND T J\n".toAscii())
+//        springBot.addInput("NOT A J\n".toAscii())
+//        springBot.addInput("NOT D T\n".toAscii())
+//        springBot.addInput("NOT T T\n".toAscii())
+//        springBot.addInput("AND T J\n".toAscii())
 
         /*
         @==>@
@@ -44,10 +44,10 @@ object Day21 : Solver() {
         #??.#
          ABCD
         */
-        springBot.addInput("NOT C J\n".toAscii())
-        springBot.addInput("NOT D T\n".toAscii())
-        springBot.addInput("NOT T T\n".toAscii())
-        springBot.addInput("AND T J\n".toAscii())
+//        springBot.addInput("NOT C J\n".toAscii())
+//        springBot.addInput("NOT D T\n".toAscii())
+//        springBot.addInput("NOT T T\n".toAscii())
+//        springBot.addInput("AND T J\n".toAscii())
 
         springBot.addInput("WALK\n".toAscii())
         springBot.run()

@@ -21,6 +21,12 @@ object Day15 : Solver() {
 
     data class Trace(val location: Location, val path: List<Direction>)
 
+    data class Node(val location: Location) {
+        var edges: MutableSet<Edge> = mutableSetOf()
+    }
+
+    data class Edge(val start: Node, val end: Node, val distance: Int)
+
     override val day: Int = 15
     override val inputs: List<String> = getInput()
 
@@ -28,6 +34,8 @@ object Day15 : Solver() {
     private val drone = IntcodeComputer(baseCodes)
     private val startPoint = Location(0, 0)
     private val allDirection = listOf(Direction.DOWN, Direction.UP, Direction.LEFT, Direction.RIGHT)
+    private val floor = explore(-500..500)
+    // private val graphNodes = simplifyFloor()
 
     private fun getDroneInput(direction: Direction): Int {
         return when (direction) {
@@ -37,8 +45,7 @@ object Day15 : Solver() {
             Direction.RIGHT -> 4
         }
     }
-
-    private fun explore(range: IntRange): Map<Location, Status> {
+private fun explore(range: IntRange): Map<Location, Status> {
         drone.resetCodes()
         val floor: MutableMap<Location, Status> = mutableMapOf()
         val seen: MutableSet<Location> = mutableSetOf()
@@ -93,7 +100,70 @@ object Day15 : Solver() {
         return floor
     }
 
-    private fun paintFloor(floor: Map<Location, Status>): String {
+    private fun simplifyFloor(): Map<Location, Node> {
+        val graphNodes = mutableMapOf<Location, Node>()
+
+        val minimalX = floor.map { it.key.x }.min()!!
+        val maximalX = floor.map { it.key.x }.max()!!
+        val minimalY = floor.map { it.key.y }.min()!!
+        val maximalY = floor.map { it.key.y }.max()!!
+
+        fun isFree(location: Location): Boolean {
+            return when (floor.getOrDefault(location, Status.WALL)) {
+                Status.EMPTY -> true
+                Status.WALL -> false
+                Status.OXYGEN -> true
+                Status.START -> true
+            }
+        }
+
+        fun isNode(location: Location): Boolean {
+            val upStatus = isFree(location.move(Direction.UP))
+            val downStatus = isFree(location.move(Direction.DOWN))
+            val leftStatus = isFree(location.move(Direction.LEFT))
+            val rightStatus = isFree(location.move(Direction.RIGHT))
+
+            if (upStatus && downStatus && !leftStatus && !rightStatus) return false
+            if (!upStatus && !downStatus && leftStatus && rightStatus) return false
+            return true
+        }
+
+        fun findNext(location: Location): List<Location> {
+            val connectedLocations = mutableListOf<Location>()
+            println("Trying to find connected nodes from $location")
+            for (direction in listOf(Direction.UP, Direction.LEFT)) {
+                var newLocation = location.move(direction)
+                while (isFree(newLocation)) newLocation = newLocation.move(direction)
+                newLocation = newLocation.move(direction.turnBack())
+                if (newLocation != location) {
+                    connectedLocations.add(newLocation)
+                    println("Adding $newLocation")
+                }
+            }
+            return connectedLocations
+        }
+
+        for (y in maximalY downTo minimalY) {
+            for (x in minimalX..maximalX) {
+                val currentLocation = Location(x, y)
+                if (!isFree(currentLocation)) continue
+                if (isNode(currentLocation)) {
+                    val newNode = Node(currentLocation)
+                    graphNodes[currentLocation] = newNode
+                    val nextNodes = findNext(currentLocation)
+                    nextNodes.forEach {
+                        val connectedNode = graphNodes.getValue(it)
+                        val distance = it.manhattanDistance(currentLocation)
+                        newNode.edges.add(Edge(start = newNode, end = connectedNode, distance = distance))
+                        connectedNode.edges.add(Edge(start = connectedNode, end = newNode, distance = distance))
+                    }
+                }
+            }
+        }
+        return graphNodes
+    }
+
+    private fun paintFloor(): String {
         val stringBuilder = StringBuilder()
         val minimalX = floor.map { it.key.x }.min()!!
         val maximalX = floor.map { it.key.x }.max()!!
@@ -107,6 +177,10 @@ object Day15 : Solver() {
             stringBuilder.appendln()
         }
         return stringBuilder.toString()
+    }
+
+    private fun dijkstra(start: Node): Map<Node, Int> {
+        TODO("Not Implemented")
     }
 
     private fun floodFill(floor: Map<Location, Status>, origin: Location = startPoint): Map<Location, Int> {
@@ -130,19 +204,18 @@ object Day15 : Solver() {
     }
 
     override fun question1(): String {
-        val floor = explore(-500..500)
         val distance = floodFill(floor)
         val minimalDistance = floor
             .filter { (_, v) -> v == Status.OXYGEN }
             .map { distance.getValue(it.key) }
             .reduce { acc, i -> if (i < acc) i else acc }
 
-        return "\n${paintFloor(floor)}\n$minimalDistance"
+        println(paintFloor())
+        return "$minimalDistance"
     }
 
 
     override fun question2(): String {
-        val floor = explore(-500..500)
         val oxygenPoint = floor.filter { it.value == Status.OXYGEN }.keys.first()
         val distance = floodFill(floor, oxygenPoint)
         val maximum = floor
@@ -154,5 +227,5 @@ object Day15 : Solver() {
 }
 
 fun main() {
-    Day15.solve()
+    Day15.solveWithTimer()
 }
